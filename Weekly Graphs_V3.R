@@ -32,7 +32,7 @@ dat$OB_date <- dat$Date.met.outbreak.definition
 # get week of outbreak from first week an outbreak was detected
 # this will later be relabeled by first day of that week for clarity
 dat <- dat %>% 
-  mutate(week_start = floor_date(Date.met.outbreak.definition, unit= "week"))
+  mutate(week_start = floor_date(Date.met.outbreak.definition, unit= "month"))
 
 # create broader categories
 dat %<>%
