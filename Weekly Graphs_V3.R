@@ -367,3 +367,18 @@ ggplot(vac_report, aes(x = my, y = n, fill = kiddos, label = n)) +
             colour = ifelse(vac_report$kiddos == "Childcare", "white", "black")) +
   theme(legend.position = "right", text = element_text(family = "Trebuchet MS"))
 
+# outbreak tables --------------------------------------
+dat <- read.csv(file = "C:/Users/rweber/Downloads/OB Data 10 20 2021.csv",
+                sep = ",", na.strings = c("NA", "N/A", "n/a", "", " "))
+
+dat %<>%
+  mutate_at(c(9:14), ~replace(., is.na(.), 0))
+
+dat$n_cases <-  dat$Total.Resident.Cases +
+  dat$Total.Staff.Cases +
+  dat$Total.attendee.cases
+
+
+dat$n_deaths <- dat$Total.Resident.Deaths +
+  dat$Total.Staff.Deaths +
+  dat$Total.Attendee.Deaths
