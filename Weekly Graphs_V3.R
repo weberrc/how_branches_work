@@ -367,3 +367,109 @@ ggplot(vac_report, aes(x = my, y = n, fill = kiddos, label = n)) +
             colour = ifelse(vac_report$kiddos == "Childcare", "white", "black")) +
   theme(legend.position = "right", text = element_text(family = "Trebuchet MS"))
 
+# outbreak tables --------------------------------------
+dat <- read.csv(file = "C:/Users/rweber/Downloads/OB Data 10 20 2021.csv",
+                sep = ",", na.strings = c("NA", "N/A", "n/a", "", " "))
+
+dat %<>%
+  mutate_at(c(9:14), ~replace(., is.na(.), 0))
+
+dat$n_cases <-  dat$Total.Resident.Cases +
+  dat$Total.Staff.Cases +
+  dat$Total.attendee.cases
+
+
+dat$n_deaths <- dat$Total.Resident.Deaths +
+  dat$Total.Staff.Deaths +
+  dat$Total.Attendee.Deaths
+
+dat %<>%
+  mutate(setting_group = case_when(COVID.Setting.Type == "Healthcare - Group Home" |
+                                     COVID.Setting.Type == "Healthcare - Psychiatric Hospital" |
+                                     COVID.Setting.Type == "Healthcare - Skilled Nursing" |
+                                     COVID.Setting.Type == "Healthcare - Rehab Facility" |
+                                     COVID.Setting.Type == "Healthcare - Acute Care Hospital" |
+                                     COVID.Setting.Type == "Healthcare - Combined Care" |
+                                     COVID.Setting.Type == "Healthcare - Long-Term Acute Care" |
+                                     COVID.Setting.Type == "Healthcare - Memory Care" |
+                                     str_detect(COVID.Setting.Type, "inpatient") |
+                                     str_detect(COVID.Setting.Type, "Living") |
+                                     str_detect(COVID.Setting.Type, "Hospice") ~ 'Residential Healthcare',
+                                   
+                                   COVID.Setting.Type == "Healthcare - Ambulatory Surgery Center" |
+                                     COVID.Setting.Type == "Healthcare - Outpatient" |
+                                     str_detect(COVID.Setting.Type, "outpatient") ~ "Outpatient Healthcare",
+                                   
+                                   COVID.Setting.Type == 'Grocery Store' | 
+                                     COVID.Setting.Type == 'Caterer' | 
+                                     COVID.Setting.Type == 'Convenience/Corner Store' | 
+                                     COVID.Setting.Type == 'Retailer' |
+                                     COVID.Setting.Type == 'Specialty Food Retailer' ~ "Retail/Grocery",
+                                   
+                                   COVID.Setting.Type == 'Banquet Facility' |
+                                     COVID.Setting.Type == 'Bar/Tavern/Brewery' |
+                                     COVID.Setting.Type == 'Indoor Entertainment/Rec' |
+                                     COVID.Setting.Type == 'Nightclub' |
+                                     COVID.Setting.Type == 'Outdoor Entertainment/Rec' |
+                                     COVID.Setting.Type == 'Restaurant - Buffet' |
+                                     COVID.Setting.Type == 'Restaurant - Fast Food' |
+                                     COVID.Setting.Type == 'Restaurant - Other' |
+                                     COVID.Setting.Type == 'Restaurant - Sit Down' ~ 'Bars/Restaurants/Entertainment',
+                                   
+                                   COVID.Setting.Type == 'Child Care Center' |
+                                     COVID.Setting.Type == 'Youth Sports/Activities' |
+                                     COVID.Setting.Type == 'College/University' |
+                                     COVID.Setting.Type == 'School/College Dorm' |
+                                     COVID.Setting.Type == "School K-12" |
+                                     COVID.Setting.Type == "Overnight Camp" |
+                                     COVID.Setting.Type == "Day Camp" |
+                                     COVID.Setting.Type == "Trade School" |
+                                     COVID.Setting.Type == "School Administration" ~ "School/Univ/Childcare",
+                                   
+                                   COVID.Setting.Type == 'Jail' |
+                                     COVID.Setting.Type == 'Correctional, Other' |
+                                     str_detect(COVID.Setting.Type, "Enforcement") |
+                                     str_detect(COVID.Setting.Type, "Prison") ~ "Corrections/Law Enforcement",
+                                   
+                                   COVID.Setting.Type == 'Agriculture - Other' |
+                                     COVID.Setting.Type == 'Farm/Dairy' |
+                                     COVID.Setting.Type == "Farmer's Market" |
+                                     COVID.Setting.Type == 'Food Distribution' |
+                                     COVID.Setting.Type == 'Food Manufacturing/Packaging' |
+                                     COVID.Setting.Type == 'Food Warehouse' |
+                                     COVID.Setting.Type == 'Meat Processing/Packaging' ~ "Agriculture/Food Supply",
+                                   
+                                   COVID.Setting.Type == 'Distribution Center/Business' |
+                                     COVID.Setting.Type == 'Materials Supplier' |
+                                     COVID.Setting.Type == "Non-Food Manufacturer/Warehouse" |
+                                     COVID.Setting.Type == "Home Maintenance Services" |
+                                     str_detect(COVID.Setting.Type, "Construction") ~ "Manufacturing/Construction",
+                                   
+                                   COVID.Setting.Type == 'Homeless Shelter' ~ "Homeless Shelters",
+                                   
+                                   COVID.Setting.Type == 'Office/Indoor Workspace' ~ "Office/Indoor Workplace",
+                                   
+                                   COVID.Setting.Type == 'Hotel/Lodge/Resort' |
+                                     COVID.Setting.Type == 'Casino' |
+                                     COVID.Setting.Type == "Travel" |
+                                     str_detect(COVID.Setting.Type, "Airport") ~ "Travel/Hospitality",
+                                   
+                                   COVID.Setting.Type == 'Fair/Festival/Temp. Mobile Event' |
+                                     COVID.Setting.Type == 'Social Gathering' |
+                                     COVID.Setting.Type == "Religious Facility" ~ "Gathering/Social Event",
+                                   TRUE ~ 'Other'))
+
+
+# count how cases and deaths per setting
+dat %>% 
+  group_by(setting_group) %>% 
+  summarise(cases = sum(n_cases),
+            deaths = sum(n_deaths),
+            Total_Outbreaks = n())
+
+# count staff cases and deaths per setting
+dat %>% 
+  group_by(setting_group) %>% 
+  summarise(cases = sum(Total.Staff.Cases),
+            deaths = sum(Total.Staff.Deaths),
+            Total_Outbreaks = n())
